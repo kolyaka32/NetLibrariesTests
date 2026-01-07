@@ -1,134 +1,98 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 
-int main(int argc, char **argv) {
-    //-----------------------------------------
-    // Declare and initialize variables
-    WSADATA wsaData = {0};
-    //int iResult = 0;
+class Library {
+private:
+    /* data */
+public:
+    Library(/* args */) {
+        // Initialize Winsock
+        WSADATA wsaData;
 
-    SOCKET sock = INVALID_SOCKET;
-    int iFamily = AF_UNSPEC;
-    int iType = 0;
-    int iProtocol = 0;
-
-    // Validate the parameters
-    if (argc != 4) {
-        printf("usage: %s <addressfamily> <type> <protocol>\n", argv[0]);
-        printf("socket opens a socket for the specified family, type, & protocol\n");
-        printf("%ws example usage\n", argv[0]);
-        printf("   %ws 0 2 17\n", argv[0]);
-        printf("   where AF_UNSPEC=0 SOCK_DGRAM=2 IPPROTO_UDP=17\n", argv[0]);
-        return 1;
+        if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NO_ERROR) {
+            printf("WSAStartup() failed\n");
+        }
     }
-
-    iFamily = atoi(argv[1]);
-    iType = atoi(argv[2]);
-    iProtocol = atoi(argv[3]);
-
-    // Initialize Winsock
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        printf("WSAStartup failed\n");
-        return 1;
+    ~Library() {
+        if (WSACleanup() < 0) {
+            printf("Can't cleanup\n");
+        }
     }
+};
 
-    printf("Calling socket with following parameters:\n");
-    printf("  Address Family = ");
-    switch (iFamily) {
-    case AF_UNSPEC:
-        printf("Unspecified");
-        break;
-    case AF_INET:
-        printf("AF_INET (IPv4)");
-        break;
-    case AF_INET6:
-        printf("AF_INET6 (IPv6)");
-        break;
-    case AF_NETBIOS:
-        printf("AF_NETBIOS (NetBIOS)");
-        break;
-    case AF_BTH:
-        printf("AF_BTH (Bluetooth)");
-        break;
-    default:
-        printf("Other");
-        break;
+class Address {
+private:
+    sockaddr_in address;
+public:
+    Address(const char* _host, u_short _port) {
+        //----------------------
+        // The sockaddr_in structure specifies the address family,
+        // IP address, and port for the socket that is being bound.
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = inet_addr(_host);
+        address.sin_port = htons(_port);
     }
-    printf(" (%d)\n", iFamily);
+    ~Address() {
 
-    printf("  Socket type = ");
-    switch (iType) {
-    case 0:
-        printf("Unspecified");
-        break;
-    case SOCK_STREAM:
-        printf("SOCK_STREAM (stream)");
-        break;
-    case SOCK_DGRAM:
-        printf("SOCK_DGRAM (datagram)");
-        break;
-    case SOCK_RAW:
-        printf("SOCK_RAW (raw)");
-        break;
-    case SOCK_RDM:
-        printf("SOCK_RDM (reliable message datagram)");
-        break;
-    case SOCK_SEQPACKET:
-        printf("SOCK_SEQPACKET (pseudo-stream packet)");
-        break;
-    default:
-        printf("Other");
-        break;
     }
-    printf(" (%d)\n", iType);
-
-    printf("  Protocol = %d = ", iProtocol);
-    switch (iProtocol) {
-    case 0:
-        printf("Unspecified");
-        break;
-    case IPPROTO_ICMP:
-        printf("IPPROTO_ICMP (ICMP)");
-        break;
-    case IPPROTO_IGMP:
-        printf("IPPROTO_IGMP (IGMP)");
-        break;
-    case IPPROTO_TCP:
-        printf("IPPROTO_TCP (TCP)");
-        break;
-    case IPPROTO_UDP:
-        printf("IPPROTO_UDP (UDP)");
-        break;
-    case IPPROTO_ICMPV6:
-        printf("IPPROTO_ICMPV6 (ICMP Version 6)");
-        break;
-    default:
-        printf("Other");
-        break;
+    const SOCKADDR* getAddress() const {
+        return (SOCKADDR*)&address;
     }
-    printf(" (%d)\n", iProtocol);
+};
 
-    sock = socket(iFamily, iType, iProtocol);
-    if (sock == INVALID_SOCKET) 
-        printf("socket function failed with error = %d\n", WSAGetLastError() );
-    else {
-        printf("socket function succeeded\n");
 
-        // Close the socket to release the resources associated
-        // Normally an application calls shutdown() before closesocket 
-        //   to  disables sends or receives on a socket first
-        // This isn't needed in this simple sample
-        if (closesocket(sock) == SOCKET_ERROR) {
-            wprintf(L"closesocket failed with error = %d\n", WSAGetLastError() );
-            WSACleanup();
-            return 1;
-        }    
+class Socket {
+private:
+    SOCKET sck = INVALID_SOCKET;
+public:
+    Socket(Address localAddress) {
+        //----------------------
+        // Create a SOCKET for listening for incoming connection requests.
+        sck = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        if (sck == INVALID_SOCKET) {
+            printf("socket function failed with error: %ld\n", WSAGetLastError());
+        }
+        // Setting socket to send from local host (as back address)
+        if (bind(sck, localAddress.getAddress(), sizeof(sockaddr_in)) == SOCKET_ERROR) {
+            printf("bind function failed with error %d\n", WSAGetLastError());
+        }
     }
+    ~Socket() {
+        if (closesocket(sck) == SOCKET_ERROR) {
+            printf("closesocket function failed with error %d\n", WSAGetLastError());
+        }
+    }
+    void send(const char* _data, unsigned _size, const Address _dest) {
+        const int flag = 0;
+        if (sendto(sck, _data, _size, flag, _dest.getAddress(), sizeof(sockaddr_in)) < 0) {
+            printf("Can't send data %d\n", WSAGetLastError());
+        } else {
+            printf("Send sucsesfull: %s\n", _data);
+        }
+    }
+    void recieve() {
+        sockaddr_in fromAddr;
+        char buffer[100];
+        int size = sizeof(sockaddr_in);
+        if (recvfrom(sck, buffer, sizeof(buffer), 0, (SOCKADDR*)&fromAddr, &size) < 0) {
+            printf("can't recieve data\n");
+        }
+    }
+};
 
-    WSACleanup();
+Library lib;
 
+int main() {
+    Address localAddr{"127.0.0.1", 8794};
+
+    char buffer[] = "Hello";
+
+    Socket socket{localAddr};
+
+    Address destAddr{"127.0.0.1", 8000};
+
+    socket.send(buffer, sizeof(buffer), destAddr);
     return 0;
 }
