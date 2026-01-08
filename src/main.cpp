@@ -1,12 +1,14 @@
 #include <winsock2.h>
-#include "time.h"
+#include <iphlpapi.h>
+#include <time.h>
 #include <stdio.h>
 
 
 class Library {
-private:
+ private:
     /* data */
-public:
+
+ public:
     Library(/* args */) {
         // Initialize Winsock
         WSADATA wsaData;
@@ -72,6 +74,10 @@ class Socket {
                 printf("bind function failed with error %d\n", WSAGetLastError());
             }
         }
+        // Setting socket to broadcast
+        bool t = true;
+        setsockopt(sck, SOL_SOCKET, SO_BROADCAST, (char*)&t, sizeof(true));
+
         printf("Openned socket at port %d\n", ntohs(localAddress.sin_port));
     }
     ~Socket() {
@@ -101,15 +107,67 @@ class Socket {
     }
 };
 
+void getLocalName1() {
+    char name[100];
+    gethostname(name, sizeof(name));
+
+    printf("Name: %s\n", name);
+}
+
+void getLocalName2(SOCKET socket) {
+    // Getting peer name
+    char name[100];
+    sockaddr_in addr;
+    int size = sizeof(addr);
+    getpeername(socket, (sockaddr*)&addr, &size);
+    printf("Peer parameters: %s, %d\n", addr.sin_addr, size);
+}
+
+void getLocalName3() {
+    char buffer[10000];
+    PIP_ADAPTER_ADDRESSES addresses = (PIP_ADAPTER_ADDRESSES)buffer;
+    unsigned long length = sizeof(buffer);
+
+    u_long dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, 
+        NULL, addresses, &length);
+
+    while (addresses) {
+        PIP_ADAPTER_UNICAST_ADDRESS pUnicast = addresses->FirstUnicastAddress;
+
+        while (pUnicast != NULL) {
+            sockaddr_in* sa_in = (sockaddr_in*)pUnicast->Address.lpSockaddr;
+
+            char* ipStr = inet_ntoa(sa_in->sin_addr);
+            printf("Address: %s:%d\n", ipStr, sa_in->sin_port);
+
+            // Исключаем loopback
+            if (strcmp(ipStr, "127.0.0.1")) {
+                // Записываем полученный адресс
+                printf("Select this\n");
+                free(ipStr);
+                return;
+            }
+
+            free(ipStr);
+            
+            pUnicast = pUnicast->Next;
+        }
+        
+        addresses = addresses->Next;
+    }
+}
+
 Library lib;
 
 int main(int argc, char ** argv) {
-    
+    // Creating global recieving socket (with local address)
+    Socket socket{8000};
+    getLocalName1();
+    //getLocalName2(socket);
+    getLocalName3();
 
     if (argc == 1) {
         // Server type
-        Socket socket{8000};
-
         // Getting any data
         while (true) {
             if (socket.recieve()) {
@@ -119,7 +177,6 @@ int main(int argc, char ** argv) {
         }
     } else if (argc == 3) {
         // Client type
-        Socket socket{8000};
         Address destAddr{argv[1], (u_short)atoi(argv[2])};
 
         char buffer[] = "Hello";

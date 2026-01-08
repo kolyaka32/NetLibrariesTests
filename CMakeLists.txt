@@ -10,7 +10,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 # Hidding console on windows
 if (WIN32)
     #set(CMAKE_CXX_FLAGS "-mwindows")
-    target_link_libraries(${PROJECT_NAME} PRIVATE wsock32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE wsock32 iphlpapi)
 endif (WIN32)
 
 
