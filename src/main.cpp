@@ -4,12 +4,10 @@
 #include <stdio.h>
 
 
+// Global library, responsible for 
 class Library {
- private:
-    /* data */
-
  public:
-    Library(/* args */) {
+    Library() {
         // Initialize Winsock
         WSADATA wsaData;
 
@@ -24,20 +22,18 @@ class Library {
     }
 };
 
+// Class for setting destination (or source) address
 class Address {
-private:
+ private:
     sockaddr_in address;
-public:
+
+ public:
     Address(const char* _host, u_short _port) {
-        //----------------------
         // The sockaddr_in structure specifies the address family,
         // IP address, and port for the socket that is being bound.
         address.sin_family = AF_INET;
         address.sin_addr.s_addr = inet_addr(_host);
         address.sin_port = htons(_port);
-    }
-    ~Address() {
-
     }
     const SOCKADDR* getAddress() const {
         return (SOCKADDR*)&address;
@@ -131,6 +127,7 @@ void getLocalName3() {
     u_long dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, 
         NULL, addresses, &length);
 
+    // Searching for local address from linked list
     while (addresses) {
         PIP_ADAPTER_UNICAST_ADDRESS pUnicast = addresses->FirstUnicastAddress;
 
@@ -144,11 +141,8 @@ void getLocalName3() {
             if (strcmp(ipStr, "127.0.0.1")) {
                 // Записываем полученный адресс
                 printf("Select this\n");
-                free(ipStr);
                 return;
             }
-
-            free(ipStr);
             
             pUnicast = pUnicast->Next;
         }
@@ -168,16 +162,23 @@ int main(int argc, char ** argv) {
 
     if (argc == 1) {
         // Server type
+        printf("Started server, licening\n");
         // Getting any data
         while (true) {
+            // Checking on getting new messages
             if (socket.recieve()) {
                 break;
             }
+            // Sleeping for decrease load
             Sleep(10);
         }
     } else if (argc == 3) {
         // Client type
-        Address destAddr{argv[1], (u_short)atoi(argv[2])};
+        u_short port = (u_short)atoi(argv[2]);
+        printf("Started client, sending to %s:%d\n", argv[1], port);
+
+        // Creating destination address, where try to send
+        Address destAddr{argv[1], port};
 
         char buffer[] = "Hello";
         socket.send(buffer, sizeof(buffer), destAddr);
