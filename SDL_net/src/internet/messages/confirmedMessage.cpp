@@ -5,8 +5,6 @@
 
 #include "confirmedMessage.hpp"
 
-#if (USE_SDL_NET)
-
 
 Uint8 ConfirmedMessage::globalMessageIndex = 1;
 
@@ -32,5 +30,3 @@ bool ConfirmedMessage::isNeedResend() {
 bool ConfirmedMessage::applyMessage(Uint8 _index) const {
     return messageIndex == _index;
 }
-
-#endif  // (USE_SDL_NET)

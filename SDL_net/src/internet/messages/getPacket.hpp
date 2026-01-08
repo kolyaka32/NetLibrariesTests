@@ -7,8 +7,6 @@
 
 #include "swap.hpp"
 
-#if (USE_SDL_NET)
-
 
 // Class with getted data from somewhere
 class GetPacket {
@@ -55,5 +53,3 @@ T GetPacket::getData(int _offset) {
     #endif
     return swapLE<T>((T)(*(datagram->buf + _offset)));
 }
-
-#endif  // (USE_SDL_NET)

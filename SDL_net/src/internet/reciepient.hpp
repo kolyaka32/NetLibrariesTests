@@ -5,12 +5,8 @@
 
 #pragma once
 
-#include "destination.hpp"
-
-// Check, if need internet library
-#if (USE_SDL_NET)
-
 #include <vector>
+#include "destination.hpp"
 #include "messages/confirmedMessage.hpp"
 #include "messages/getPacket.hpp"
 
@@ -47,6 +43,3 @@ class Reciepient {
     bool checkIndexUniqness(Uint8 index);
     const char* getName() const;
 };
-
-
-#endif  // (USE_SDL_NET)

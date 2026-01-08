@@ -6,9 +6,6 @@
 #pragma once
 
 #include "message.hpp"
-
-#if (USE_SDL_NET)
-
 #include "../../data/time.hpp"
 #include "indexesArray.cpp"
 
@@ -36,5 +33,3 @@ ConfirmedMessage::ConfirmedMessage(ConnectionCode _code, const Args ...args)
 messageIndex(globalMessageIndex) {
     updateGlobalIndex();
 }
-
-#endif  // (USE_SDL_NET)

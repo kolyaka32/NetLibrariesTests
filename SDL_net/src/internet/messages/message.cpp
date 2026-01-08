@@ -5,10 +5,6 @@
 
 #include "message.hpp"
 
-#if (USE_SDL_NET)
-
-
-Message::Message() {}
 
 const Uint8* Message::getData() const {
     return data;
@@ -28,5 +24,3 @@ void Message::write(const ConnectionCode _object) {
     *(data + size) = (Uint8)_object;
     size += sizeof(Uint8);
 }
-
-#endif  // (USE_SDL_NET)

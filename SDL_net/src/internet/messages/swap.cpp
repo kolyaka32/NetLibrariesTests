@@ -5,8 +5,6 @@
 
 #include "swap.hpp"
 
-#if (USE_SDL_NET)
-
 
 // Swap little endian function realisations
 template <>
@@ -58,5 +56,3 @@ template <>
 Sint64 swapLE<Sint64>(Sint64 object) {
     return SDL_Swap64LE(object);
 }
-
-#endif  // (USE_SDL_NET)

@@ -7,8 +7,6 @@
 
 #include "swap.hpp"
 
-#if (USE_SDL_NET)
-
 
 // Class with data for sending somewhere
 class Message {
@@ -18,7 +16,6 @@ class Message {
     unsigned size = 0;
 
  public:
-    Message();
     template <typename ...Args>
     Message(const Args ...args);
     // Writing functions
@@ -41,8 +38,7 @@ class Message {
 
 
 template <typename ...Args>
-Message::Message(const Args ...args)
-: Message() {
+Message::Message(const Args ...args) {
     write(args...);
 }
 
@@ -71,5 +67,3 @@ void Message::write(const T _object, const Args ...args) {
     write(_object);
     write(args...);
 }
-
-#endif  // (USE_SDL_NET)

@@ -5,8 +5,6 @@
 
 #include "getPacket.hpp"
 
-#if (USE_SDL_NET)
-
 
 GetPacket::GetPacket(NET_Datagram* _datagram)
 : datagram(_datagram) {}
@@ -23,5 +21,3 @@ bool GetPacket::isBytesAvaliable(int bytes) {
 const void* GetPacket::getPointer() const {
     return datagram->buf;
 }
-
-#endif  // (USE_SDL_NET)

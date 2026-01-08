@@ -6,8 +6,6 @@
 #include <cstdio>
 #include "internet.hpp"
 
-#if (USE_SDL_NET)
-
 
 Internet::Internet() {
     getLocalAddress();
@@ -202,5 +200,3 @@ void Internet::sendAllConfirmed(const ConfirmedMessage _message) {
         reciepients[i].sendConfirmed(gettingSocket, _message);
     }
 }
-
-#endif  // (USE_SDL_NET)

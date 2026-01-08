@@ -6,9 +6,6 @@
 #pragma once
 
 #include "../data/logger.hpp"
-
-#if (USE_SDL_NET)
-
 #include "messages/message.hpp"
 
 
@@ -34,5 +31,3 @@ class StringDestination : public Destination {
    StringDestination(const char* address, Uint16 port);
    ~StringDestination();
 };
-
-#endif  // (USE_SDL_NET)

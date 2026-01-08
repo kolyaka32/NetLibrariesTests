@@ -8,9 +8,6 @@
 #include <vector>
 #include "reciepient.hpp"
 
-// Check, if need internet library
-#if (USE_SDL_NET)
-
 
 // Global class for send/recieve data from internet
 class Internet {
@@ -56,5 +53,3 @@ class Internet {
 
 // Global system to send/recieve messages throw internet
 extern Internet internet;
-
-#endif  // (USE_SDL_NET)
