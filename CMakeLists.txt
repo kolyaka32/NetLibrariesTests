@@ -1,20 +1,27 @@
-cmake_minimum_required(VERSION 3.15)
+# Setting cmake requirement for correct compilation
+cmake_minimum_required(VERSION 3.10)
+
+# Creating project
 project(winSockTest)
 
-set(CMAKE_C_STANDARD 11) # Requires C11 standard
+# Requires C11 standard
+set(CMAKE_C_STANDARD 11)
 
 # Add all source files (that needed) under the src directory
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.cpp" "src/*.rc")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Hidding console on windows
+# Linking libraries depending on platform
 if (WIN32)
+    # Hidding console on windows
     #set(CMAKE_CXX_FLAGS "-mwindows")
+    # Linking library for net
     target_link_libraries(${PROJECT_NAME} PRIVATE wsock32 iphlpapi)
 endif (WIN32)
 
 
-# Executable & linking
-#find_package(raylib REQUIRED)
+# Finding required external libraries
+#find_package( REQUIRED)
 
-#target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
+# Linking external libraries
+#target_link_libraries(${PROJECT_NAME} PRIVATE )
