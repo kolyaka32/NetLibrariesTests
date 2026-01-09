@@ -1,187 +1,59 @@
-#include <winsock2.h>
-#include <iphlpapi.h>
-#include <time.h>
-#include <stdio.h>
+/*
+ * Copyright (C) 2026, Kazankov Nikolay
+ * <nik.kazankov.05@mail.ru>
+ */
 
+#include "data/libraries.hpp"
+#include "internet/internet.hpp"
 
-// Global library, responsible for 
-class Library {
- public:
-    Library() {
-        // Initialize Winsock
-        WSADATA wsaData;
+// Initialasing global objects in correct order
+// Logger
+#if (CHECK_ALL)
+std::ofstream logFile{"log.txt"};
+#endif
 
-        if (WSAStartup(MAKEWORD(2, 2), &wsaData) != NO_ERROR) {
-            printf("WSAStartup() failed\n");
-        }
-    }
-    ~Library() {
-        if (WSACleanup() < 0) {
-            printf("Can't cleanup\n");
-        }
-    }
-};
+// All side libries
+Libraries libraries{};
 
-// Class for setting destination (or source) address
-class Address {
- private:
-    sockaddr_in address;
+#if (USE_SDL_NET)
+Internet internet{};
+#endif
 
- public:
-    Address(const char* _host, u_short _port) {
-        // The sockaddr_in structure specifies the address family,
-        // IP address, and port for the socket that is being bound.
-        address.sin_family = AF_INET;
-        address.sin_addr.s_addr = inet_addr(_host);
-        address.sin_port = htons(_port);
-    }
-    const SOCKADDR* getAddress() const {
-        return (SOCKADDR*)&address;
-    }
-};
-
-
-class Socket {
- private:
-    sockaddr_in localAddress;
-    SOCKET sck = INVALID_SOCKET;
-
- public:
-    Socket(u_short _port) {
-        // Create a SOCKET for listening for incoming connection requests.
-        sck = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-        if (sck == INVALID_SOCKET) {
-            printf("socket function failed with error: %ld\n", WSAGetLastError());
-        }
-        // Setting local address
-        localAddress.sin_family = AF_INET;
-        localAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
-        localAddress.sin_port = htons(_port);
-        // Setting random seed from time
-        srand(time(0));
-        // Finding avaliable port
-        // Setting socket to send from created local host (as back address)
-        while (bind(sck, (SOCKADDR*)&localAddress, sizeof(localAddress)) == SOCKET_ERROR) {
-            if (WSAGetLastError() == 10048) {
-                // Trying find another port
-                localAddress.sin_port = htons(rand() % 10000);
-            } else {
-                // Error
-                printf("bind function failed with error %d\n", WSAGetLastError());
-            }
-        }
-        // Setting socket to broadcast
-        bool t = true;
-        setsockopt(sck, SOL_SOCKET, SO_BROADCAST, (char*)&t, sizeof(true));
-
-        printf("Openned socket at port %d\n", ntohs(localAddress.sin_port));
-    }
-    ~Socket() {
-        if (closesocket(sck) == SOCKET_ERROR) {
-            printf("closesocket function failed with error %d\n", WSAGetLastError());
-        }
-    }
-    void send(const char* _data, unsigned _size, const Address _dest) {
-        const int flag = 0;
-        if (sendto(sck, _data, _size, flag, _dest.getAddress(), sizeof(sockaddr_in)) < 0) {
-            printf("Can't send data %d\n", WSAGetLastError());
-        } else {
-            printf("Send sucsesfull: %s\n", _data);
-        }
-    }
-    bool recieve() {
-        sockaddr_in fromAddr;
-        char buffer[100];
-        int size = sizeof(sockaddr_in);
-        if (recvfrom(sck, buffer, sizeof(buffer), 0, (SOCKADDR*)&fromAddr, &size) < 0) {
-            printf("can't recieve data\n");
-        } else {
-            printf("Get data with length %d: %s\n", size, buffer);
-            return true;
-        }
-        return false;
-    }
-};
-
-void getLocalName1() {
-    char name[100];
-    gethostname(name, sizeof(name));
-
-    printf("Name: %s\n", name);
-}
-
-void getLocalName2(SOCKET socket) {
-    // Getting peer name
-    char name[100];
-    sockaddr_in addr;
-    int size = sizeof(addr);
-    getpeername(socket, (sockaddr*)&addr, &size);
-    printf("Peer parameters: %s, %d\n", addr.sin_addr, size);
-}
-
-void getLocalName3() {
-    char buffer[10000];
-    PIP_ADAPTER_ADDRESSES addresses = (PIP_ADAPTER_ADDRESSES)buffer;
-    unsigned long length = sizeof(buffer);
-
-    u_long dwRetVal = GetAdaptersAddresses(AF_INET, GAA_FLAG_INCLUDE_PREFIX, 
-        NULL, addresses, &length);
-
-    // Searching for local address from linked list
-    while (addresses) {
-        PIP_ADAPTER_UNICAST_ADDRESS pUnicast = addresses->FirstUnicastAddress;
-
-        while (pUnicast != NULL) {
-            sockaddr_in* sa_in = (sockaddr_in*)pUnicast->Address.lpSockaddr;
-
-            char* ipStr = inet_ntoa(sa_in->sin_addr);
-            printf("Address: %s:%d\n", ipStr, sa_in->sin_port);
-
-            // Исключаем loopback
-            if (strcmp(ipStr, "127.0.0.1")) {
-                // Записываем полученный адресс
-                printf("Select this\n");
-                return;
-            }
-            
-            pUnicast = pUnicast->Next;
-        }
-        
-        addresses = addresses->Next;
-    }
-}
-
-Library lib;
-
+// Main function
 int main(int argc, char ** argv) {
-    // Creating global recieving socket (with local address)
-    Socket socket{8000};
-    getLocalName1();
-    //getLocalName2(socket);
-    getLocalName3();
-
     if (argc == 1) {
         // Server type
-        printf("Started server, licening\n");
+        logAdditional("Started server, licening\n");
+        // Getting string with full address of current host
+        Uint16 port = internet.openServer();
+        logAdditional("Current host: %s:%d", internet.getLocalhost(), port);
+
         // Getting any data
         while (true) {
             // Checking on getting new messages
-            if (socket.recieve()) {
+            if (NET_Datagram* message = internet.getNewMessages()) {
+                logAdditional("Get data with length %d: %s\n", message->buflen, message->buf);
+                NET_DestroyDatagram(message);
                 break;
             }
             // Sleeping for decrease load
-            Sleep(10);
+            SDL_Delay(10);
         }
+        internet.close();
     } else if (argc == 3) {
+        // Starting random getting socket
+        internet.openClient();
+
         // Client type
-        u_short port = (u_short)atoi(argv[2]);
-        printf("Started client, sending to %s:%d\n", argv[1], port);
+        Uint16 port = (Uint16)SDL_atoi(argv[2]);
+        logAdditional("Started client, sending to %s:%d\n", argv[1], port);
 
         // Creating destination address, where try to send
-        Address destAddr{argv[1], port};
-
-        char buffer[] = "Hello";
-        socket.send(buffer, sizeof(buffer), destAddr);
+        StringDestination destAddr{argv[1], port};
+        // Trying send data to specified address
+        char message[] = "Hello";
+        Array<char> data{message, sizeof(message)};
+        internet.sendFirst(destAddr, {ConnectionCode::Init, data});
     }
     
     return 0;

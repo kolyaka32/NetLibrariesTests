@@ -5,12 +5,11 @@
 
 #pragma once
 
-#include <SDL3/SDL_stdinc.h>
 #include "define.hpp"
 
 
 // Codes for send/recieve in internet messages
-enum class ConnectionCode : Uint8 {
+enum class ConnectionCode {
     // System codes
     Null,     // Code of absence of new messages
     Init,     // Code for initialise connection
@@ -27,4 +26,4 @@ enum class ConnectionCode : Uint8 {
 };
 
 // Basic connecting port
-const Uint16 basePort = 8000;
+const unsigned short basePort = 8000;

@@ -19,9 +19,8 @@ if (WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE wsock32 iphlpapi)
 endif (WIN32)
 
-
 # Finding required external libraries
-#find_package( REQUIRED)
+find_package(SDL3 REQUIRED)
 
 # Linking external libraries
-#target_link_libraries(${PROJECT_NAME} PRIVATE )
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3::SDL3)
