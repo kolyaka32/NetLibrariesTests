@@ -5,29 +5,24 @@
 
 #pragma once
 
-#include "../data/logger.hpp"
-#include "messages/message.hpp"
+#include "messages/confirmedMessage.hpp"
 
 
 // Class with address and port for send operation
 class Destination {
  protected:
-    // Adress and port of client, sending to
-    NET_Address* address;
-    Uint16 port;
+    // Adress and port, sending to
+    #if (USE_WINSOCK)
+    sockaddr_in address;
+    #endif  // (USE_WINSOCK)
 
  public:
-    Destination(NET_Address* address, Uint16 port);
-    bool operator==(const Destination& b);
-    void send(NET_DatagramSocket* sock, const Message& message) const;
+    Destination(sockaddr_in address);
+    Destination(sockaddr address, int size);
+    Destination(const char* name, Uint16 port);
+    bool operator==(const sockaddr_in* compareAddress) const;
     const char* getName() const;
-    NET_DatagramSocket* getDatagrammSocket();
-};
-
-
-// Class with port and address, created from string
-class StringDestination : public Destination {
- public:
-   StringDestination(const char* address, Uint16 port);
-   ~StringDestination();
+    Uint16 getPort() const;
+    sockaddr* getAddress() const;
+    int getSize() const;
 };

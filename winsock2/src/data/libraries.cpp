@@ -5,8 +5,8 @@
 
 
 #include <SDL3/SDL.h>
-#include <SDL3_net/SDL_net.h>
 #include "libraries.hpp"
+#include "../internet/library.hpp"
 #include "exceptions.hpp"
 
 
@@ -18,24 +18,24 @@ Libraries::Libraries() {
         throw LibararyLoadException("Main library: " + std::string(SDL_GetError()));
     }
     // Intialasing internet library
-    #if (USE_SDL_NET)
-    if (!NET_Init()) {
+    #if (USE_NET)
+    if (initNet()) {
         throw LibararyLoadException("Couldn't initialase internet library: " + std::string(SDL_GetError()));
     }
     #endif
     logAdditional("Libraries load correctly");
     #else  // (CHECK_CORRECTION)
     SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
-    #if (USE_SDL_NET)
-    NET_Init();
+    #if (USE_NET)
+    initNet();
     #endif
     #endif  // (CHECK_CORRECTION)
 }
 
 Libraries::~Libraries() noexcept {
     // Closing internet library
-    #if (USE_SDL_NET)
-    NET_Quit();
+    #if (USE_NET)
+    closeNet();
     #endif
 
     // Closing main SDL library

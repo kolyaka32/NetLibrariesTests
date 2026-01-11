@@ -5,14 +5,14 @@
 
 #pragma once
 
-#include "swap.hpp"
+#include "../library.hpp"
 
 
 // Class with data for sending somewhere
 class Message {
  private:
     static const int maxSize = 100;
-    Uint8 data[maxSize];
+    char data[maxSize];
     unsigned size = 0;
 
  public:
@@ -22,8 +22,6 @@ class Message {
     // Write multiple function
     template <typename T, typename ...Args>
     void write(const T object, const Args ...argv);
-    //
-    void write(const ConnectionCode object);
     // Write single object
     template <typename T>
     void write(const T object);
@@ -32,7 +30,7 @@ class Message {
     void write(const Array<T> object);
 
     // Getters
-    const Uint8* getData() const;
+    const char* getData() const;
     size_t getLength() const;
 };
 
@@ -50,7 +48,7 @@ void Message::write(const T _object) {
         throw "Can't write data - not enogh size";
     }
     #endif
-    *(data + size) = swapLE<T>(_object);
+    *(data + size) = writeNet(_object);
     size += sizeof(T);
 }
 

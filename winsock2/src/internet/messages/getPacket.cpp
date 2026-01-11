@@ -6,18 +6,43 @@
 #include "getPacket.hpp"
 
 
-GetPacket::GetPacket(NET_Datagram* _datagram)
-: datagram(_datagram) {}
-
-GetPacket::~GetPacket() {
-    // Clear rest packet
-    NET_DestroyDatagram(datagram);  // ! Check on correct use
+#if (USE_WINSOCK)
+GetPacket* GetPacket::tryGetData(const SOCKET _socket) {
+    // Try recieve data
+    srcAddressLength = sizeof(srcAddress);
+    length = recvfrom(_socket, buffer, sizeof(buffer), 0, (SOCKADDR*)&srcAddress, &srcAddressLength);
+    if (length > 0) {
+        logAdditional("Get data with length %d: %s\n", length, buffer);
+        // Reset offset
+        offset = 0;
+        return this;
+    }
+    #if (CHECK_CORRECTION)
+    // Checking, if was error
+    if (length < 0) {
+        logImportant("Get error from recieving data");
+    }
+    #endif  // (CHECK_CORRECTION)
+    return nullptr;
 }
 
-bool GetPacket::isBytesAvaliable(int bytes) {
-    return datagram->buflen >= bytes;
+sockaddr_in* GetPacket::getSourceAddress() {
+    return &srcAddress;
+}
+
+int GetPacket::getSourceAddressLength() const {
+    return srcAddressLength;
+}
+#endif  // (USE_WINSOCK)
+
+bool GetPacket::isBytesAvaliable(int bytes) const {
+    return length >= bytes;
+}
+
+int GetPacket::getLength() {
+    return length;
 }
 
 const void* GetPacket::getPointer() const {
-    return datagram->buf;
+    return buffer;
 }

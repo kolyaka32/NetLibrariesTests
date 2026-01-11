@@ -1,15 +1,16 @@
 /*
- * Copyright (C) 2026, Kazankov Nikolay
+ * Copyright (C) 2024-2026, Kazankov Nikolay
  * <nik.kazankov.05@mail.ru>
  */
 
 #pragma once
 
+#include <SDL3/SDL_stdinc.h>
 #include "define.hpp"
 
 
 // Codes for send/recieve in internet messages
-enum class ConnectionCode {
+enum class ConnectionCode : Uint8 {
     // System codes
     Null,     // Code of absence of new messages
     Init,     // Code for initialise connection
@@ -26,4 +27,4 @@ enum class ConnectionCode {
 };
 
 // Basic connecting port
-const unsigned short basePort = 8000;
+const Uint16 basePort = 8000;

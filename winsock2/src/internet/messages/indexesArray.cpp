@@ -15,9 +15,6 @@ IndexesArray<length>::IndexesArray() {
 }
 
 template <unsigned length>
-IndexesArray<length>::~IndexesArray() {}
-
-template <unsigned length>
 bool IndexesArray<length>::isUnique(Uint8 _index) {
     // Check, if index in array
     for (int i=0; i < length; ++i) {

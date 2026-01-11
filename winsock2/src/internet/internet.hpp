@@ -12,15 +12,10 @@
 // Global class for send/recieve data from internet
 class Internet {
  private:
-    // Getting part
-    NET_DatagramSocket* gettingSocket;
+    // Socket for recieve/send data
+    Socket socket;
     // Flag of disconnecting current user from main internet system
     bool disconnected;
-
-    // Special addresses
-    char localhost[16];  // Address of current machine
-    void getLocalAddress();
-
     // Reciepients
     std::vector<Reciepient> reciepients;
 
@@ -28,19 +23,18 @@ class Internet {
     Internet();
 
     // Init part
-    Uint16 openServer();
-    void openClient();
-    void connectTo(NET_Address* address, Uint16 port);
+    void connectTo(const Destination& dest);
+    Uint16 getPort() const;
+    const char* getHostName() const;
     void close();
     void disconnect();
-    const char* getLocalhost();
 
     // Sending data to specialised user, without applience
-    void sendFirst(Destination dest, const Message message);
+    void sendFirst(const Destination& dest, const Message& message) const;
     // Sending data to all reciepients, without applience
-    void sendAll(const Message message);
+    void sendAll(const Message& message);
     // Sending data to all reciepients, confirming for delievery
-    void sendAllConfirmed(const ConfirmedMessage message);
+    void sendAllConfirmed(const ConfirmedMessage& message);
 
     // Control part
     void checkResendMessages();
@@ -48,7 +42,7 @@ class Internet {
     bool checkStatus();  // Return true on disconect
 
     // Getting part
-    NET_Datagram* getNewMessages();
+    GetPacket* getNewMessages();
 };
 
 // Global system to send/recieve messages throw internet

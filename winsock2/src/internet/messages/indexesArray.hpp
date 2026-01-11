@@ -17,7 +17,6 @@ class IndexesArray {
 
  public:
     IndexesArray();
-    ~IndexesArray();
     bool isUnique(Uint8 index);
     void add(Uint8 index);
 };
