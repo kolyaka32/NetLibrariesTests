@@ -13,7 +13,7 @@ char hostName[16];
 
 bool findHostName() {
     // Allocating static memory for that process
-    char buffer[4000];
+    char buffer[10000];
     PIP_ADAPTER_ADDRESSES addresses = (PIP_ADAPTER_ADDRESSES)buffer;
     unsigned long length = sizeof(buffer);
 
@@ -29,18 +29,15 @@ bool findHostName() {
             sockaddr_in* sa_in = (sockaddr_in*)pUnicast->Address.lpSockaddr;
 
             char* ipStr = inet_ntoa(sa_in->sin_addr);
-            logAdditional("Address: %s:%d\n", ipStr, sa_in->sin_port);
-
             // Check if not loopback
             if (strcmp(ipStr, "127.0.0.1")) {
                 // Writing getted address
                 snprintf(hostName, sizeof(hostName), "%s", ipStr);
+                logAdditional("Hostname: %s", ipStr);
                 return false;
             }
-            
             pUnicast = pUnicast->Next;
         }
-        
         addresses = addresses->Next;
     }
     return true;

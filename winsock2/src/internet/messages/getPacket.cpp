@@ -17,12 +17,6 @@ GetPacket* GetPacket::tryGetData(const SOCKET _socket) {
         offset = 0;
         return this;
     }
-    #if (CHECK_CORRECTION)
-    // Checking, if was error
-    if (length < 0) {
-        logImportant("Get error from recieving data");
-    }
-    #endif  // (CHECK_CORRECTION)
     return nullptr;
 }
 
