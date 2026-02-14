@@ -16,7 +16,7 @@ Socket::Socket(Uint16 _port) {
     }
     // Setting local address
     localAddress.sin_family = AF_INET;
-    localAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+    localAddress.sin_addr.S_un.S_addr = INADDR_ANY;
     port = _port;
     localAddress.sin_port = htons(port);
     // Setting random seed from time
