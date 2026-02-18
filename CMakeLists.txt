@@ -8,6 +8,6 @@ project(NetLibs)
 # SDL_net library
 add_subdirectory(SDL_net)
 # Winsock2 library
-add_subdirectory(WinSock2)
+add_subdirectory(winSock2)
 # Winsock2 library
 #add_subdirectory(WinSockTest)
